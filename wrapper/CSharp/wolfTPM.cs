@@ -82,6 +82,27 @@ namespace wolfTPM
         audit           = 0x80,
     }
 
+    public enum TPM_RH : ulong
+        FIRST        = 0x40000000,
+        SRK          = FIRST,
+        OWNER        = 0x40000001,
+        REVOKE       = 0x40000002,
+        TRANSPORT    = 0x40000003,
+        OPERATOR     = 0x40000004,
+        ADMIN        = 0x40000005,
+        EK           = 0x40000006,
+        NULL         = 0x40000007,
+        UNASSIGNED   = 0x40000008,
+        PW           = 0x40000009,
+        LOCKOUT      = 0x4000000A,
+        ENDORSEMENT  = 0x4000000B,
+        PLATFORM     = 0x4000000C,
+        PLATFORM_NV  = 0x4000000D,
+        AUTH_00      = 0x40000010,
+        AUTH_FF      = 0x4000010F,
+        LAST         = AUTH_FF,
+    }
+
     public class KeyBlob
     {
         const string DLLNAME = "wolftpm";
@@ -502,8 +523,32 @@ namespace wolfTPM
                 rsaPriv.Length);
         }
 
+        [DllImport(DLLNAME, EntryPoint = "wolfTPM2_CreatePrimaryKey")]
+        private static extern int wolfTPM2_CreatePrimaryKey(
+            IntPtr dev,
+            IntPtr key,
+            ulong primaryHandle,
+            Intptr publicTemplate,
+            string auth,
+            int authSz);
+        public int CreatePrimaryKey(
+            Key key,
+            ulong primaryHandle,
+            Template publicTemplate,
+            string auth)
+        {
+            return wolfTPM2_CreatePrimaryKey(
+                device,
+                key.key,
+                primaryHandle,
+                publicTemplate.template,
+                auth,
+                auth.Length);
+        }
+
         [DllImport(DLLNAME, EntryPoint = "wolfTPM2_UnloadHandle")]
-        private static extern int wolfTPM2_UnloadHandle(IntPtr dev, IntPtr handle);
+        private static extern int wolfTPM2_UnloadHandle(IntPtr dev,
+            IntPtr handle);
         public int UnloadHandle(Key key)
         {
             return wolfTPM2_UnloadHandle(device, key.key);
